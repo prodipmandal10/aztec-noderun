@@ -17,7 +17,7 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 echo "[3/10] Installing essential packages..."
-sudo apt-get install -y curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip libleveldb-dev screen ufw apt-transport-https ca-certificates software-properties-common
+sudo apt-get install -y curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf screen htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip libleveldb-dev ufw apt-transport-https ca-certificates software-properties-common
 
 echo "[4/10] Installing Docker and Docker Compose..."
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
@@ -52,7 +52,6 @@ sudo ufw --force enable
 EOF
 
 # Now, outside the 'yes' wrapper, prompt user inputs for the aztec start command
-
 echo "========================================"
 echo "📝 Please enter AZTEC node configuration:"
 read -p "Network (e.g. alpha-testnet): " network
@@ -62,7 +61,18 @@ read -p "Sequencer Validator Private Key (0x...): " priv_key
 read -p "Sequencer Coinbase Address (0x...): " coinbase
 read -p "P2P IP Address: " p2p_ip
 
-# Compose command
+# Save input to a config log file
+config_file="$HOME/aztec-config-log.txt"
+echo "===== AZTEC Node Configuration =====" > "$config_file"
+echo "Network: $network" >> "$config_file"
+echo "L1 RPC: $l1_rpc" >> "$config_file"
+echo "L1 Consensus: $l1_consensus" >> "$config_file"
+echo "Validator Private Key: $priv_key" >> "$config_file"
+echo "Coinbase Address: $coinbase" >> "$config_file"
+echo "P2P IP: $p2p_ip" >> "$config_file"
+echo "✅ Configuration saved to $config_file"
+
+# Compose aztec start command
 cmd="aztec start --node --archiver --sequencer \
 --network $network \
 --l1-rpc-urls $l1_rpc \
@@ -72,13 +82,13 @@ cmd="aztec start --node --archiver --sequencer \
 --p2p.p2pIp $p2p_ip"
 
 echo ""
-echo "🚀 Starting AZTEC node in tmux session 'aztec-node' with command:"
+echo "🚀 Starting AZTEC node in screen session 'AZZ' with command:"
 echo "$cmd"
 echo ""
 
-# Start tmux session running the aztec start command
-tmux new-session -d -s aztec-node "$cmd"
+# Start screen session
+screen -dmS AZZ bash -c "$cmd"
 
-echo "✅ AZTEC node started in tmux session 'aztec-node'."
-echo "▶️ To view logs: tmux attach -t aztec-node"
-echo "🧹 To detach tmux: Ctrl+B then D"
+echo "✅ AZTEC node started in screen session 'AZZ'."
+echo "▶️ To view logs: screen -r AZZ"
+echo "🧹 To detach from screen: Press Ctrl+A then D"
