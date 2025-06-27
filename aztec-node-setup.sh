@@ -3,7 +3,7 @@
 set -e
 
 echo "========================================"
-echo "🔧 Starting Full AZTEC Node Setup Script"
+echo "🔧 Starting Full AZTEC Node PRODIP"
 echo "========================================"
 
 # Auto confirm all prompts using -y or --force flags, plus yes pipe for any unknown prompt
