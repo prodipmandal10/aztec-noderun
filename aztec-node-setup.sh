@@ -3,7 +3,7 @@
 set -e
 
 echo "========================================"
-echo "🔧 Starting Full AZTEC Node PRODIP"
+echo "🔧 Starting Full AZTEC Node Setup (With Docker Fix)"
 echo "========================================"
 
 yes | bash <<'EOF'
@@ -23,13 +23,25 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o 
 echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
 sudo apt-get install -y docker-ce
+
 sudo systemctl enable --now docker
+
+echo "[⚙️  Docker permission setup...]"
 sudo usermod -aG docker $USER
-newgrp docker
+
+# Ensure docker group applies immediately
+if ! groups | grep -q docker; then
+  echo "⚠️  Docker group not yet applied. Restarting shell in docker group..."
+  exec sg docker "$0"
+  exit
+fi
+
 sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
+
 docker --version
 docker-compose --version
+docker ps > /dev/null 2>&1 && echo "Docker accessible ✅" || echo "❌ Docker not accessible"
 
 echo "[5/10] Installing AZTEC CLI..."
 bash -i <(curl -s https://install.aztec.network)
@@ -52,9 +64,16 @@ EOF
 
 echo "========================================"
 echo "📝 Please enter AZTEC node configuration:"
-read -p "Network (e.g. alpha-testnet): " network
-read -p "L1 RPC URLs (e.g. Eth_Sepolia_RPC): " l1_rpc
-read -p "L1 Consensus Host URLs (e.g. Eth-beacon_sepolia_RPC): " l1_consensus
+
+read -p "Network (default: alpha-testnet): " network
+network=${network:-alpha-testnet}
+
+read -p "L1 RPC URLs (default: https://rpc.sepolia.org): " l1_rpc
+l1_rpc=${l1_rpc:-https://rpc.sepolia.org}
+
+read -p "L1 Consensus Host URLs (default: https://beaconstate-sepolia.chainsafe.io): " l1_consensus
+l1_consensus=${l1_consensus:-https://beaconstate-sepolia.chainsafe.io}
+
 read -p "Sequencer Validator Private Key (0x...): " priv_key
 read -p "Sequencer Coinbase Address (0x...): " coinbase
 read -p "P2P IP Address: " p2p_ip
@@ -77,18 +96,18 @@ cmd="export PATH=\$HOME/.aztec/bin:\$PATH && aztec start --node --archiver --seq
 --l1-consensus-host-urls $l1_consensus \
 --sequencer.validatorPrivateKey $priv_key \
 --sequencer.coinbase $coinbase \
---p2p.p2pIp $p2p_ip"
+--p2p.p2pIp $p2p_ip >> \$HOME/aztec-node.log 2>&1"
 
 # Save for debug
 echo "$cmd" > ~/last_aztec_cmd.sh
 
-# Start in screen session with logging
+# Start in screen session with log
 screen -L -Logfile ~/aztec-screen.log -dmS AZZ bash -l -c "$cmd"
 
 echo ""
 echo "✅ AZTEC node started in screen session 'AZZ'."
 echo "📄 Logs (CLI): saved to ~/aztec-node.log"
 echo "📄 Logs (Screen): saved to ~/aztec-screen.log"
-echo "▶️ To view live screen: screen -r AZZ"
-echo "🧹 To detach from screen: Press Ctrl+A then D"
-echo "🔎 Or use: tail -f ~/aztec-screen.log"
+echo "▶️ To view screen: screen -r AZZ"
+echo "🧹 To detach: Press Ctrl+A then D"
+echo "🔎 Or tail log: tail -f ~/aztec-screen.log"
