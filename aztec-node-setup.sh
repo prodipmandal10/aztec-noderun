@@ -77,17 +77,18 @@ cmd="export PATH=\$HOME/.aztec/bin:\$PATH && aztec start --node --archiver --seq
 --l1-consensus-host-urls $l1_consensus \
 --sequencer.validatorPrivateKey $priv_key \
 --sequencer.coinbase $coinbase \
---p2p.p2pIp $p2p_ip >> \$HOME/aztec-node.log 2>&1"
+--p2p.p2pIp $p2p_ip"
 
 # Save for debug
 echo "$cmd" > ~/last_aztec_cmd.sh
 
-# Start in screen session with login shell
-screen -dmS AZZ bash -l -c "$cmd"
+# Start in screen session with logging
+screen -L -Logfile ~/aztec-screen.log -dmS AZZ bash -l -c "$cmd"
 
 echo ""
 echo "✅ AZTEC node started in screen session 'AZZ'."
-echo "📄 Logs are being saved to ~/aztec-node.log"
-echo "▶️ To view logs: screen -r AZZ"
+echo "📄 Logs (CLI): saved to ~/aztec-node.log"
+echo "📄 Logs (Screen): saved to ~/aztec-screen.log"
+echo "▶️ To view live screen: screen -r AZZ"
 echo "🧹 To detach from screen: Press Ctrl+A then D"
-echo "🔎 Or use: tail -f ~/aztec-node.log"
+echo "🔎 Or use: tail -f ~/aztec-screen.log"
