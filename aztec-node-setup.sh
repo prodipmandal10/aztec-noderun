@@ -6,7 +6,6 @@ echo "========================================"
 echo "🔧 Starting Full AZTEC Node PRODIP"
 echo "========================================"
 
-# Auto confirm all prompts using -y or --force flags, plus yes pipe for any unknown prompt
 yes | bash <<'EOF'
 
 echo "[1/10] Updating system packages..."
@@ -51,7 +50,6 @@ sudo ufw --force enable
 
 EOF
 
-# Now, outside the 'yes' wrapper, prompt user inputs for the aztec start command
 echo "========================================"
 echo "📝 Please enter AZTEC node configuration:"
 read -p "Network (e.g. alpha-testnet): " network
@@ -72,23 +70,24 @@ echo "Coinbase Address: $coinbase" >> "$config_file"
 echo "P2P IP: $p2p_ip" >> "$config_file"
 echo "✅ Configuration saved to $config_file"
 
-# Compose aztec start command
-cmd="aztec start --node --archiver --sequencer \
+# Compose full command with safe PATH
+cmd="export PATH=\$HOME/.aztec/bin:\$PATH && aztec start --node --archiver --sequencer \
 --network $network \
 --l1-rpc-urls $l1_rpc \
 --l1-consensus-host-urls $l1_consensus \
 --sequencer.validatorPrivateKey $priv_key \
 --sequencer.coinbase $coinbase \
---p2p.p2pIp $p2p_ip"
+--p2p.p2pIp $p2p_ip >> \$HOME/aztec-node.log 2>&1"
+
+# Save for debug
+echo "$cmd" > ~/last_aztec_cmd.sh
+
+# Start in screen session with login shell
+screen -dmS AZZ bash -l -c "$cmd"
 
 echo ""
-echo "🚀 Starting AZTEC node in screen session 'AZZ' with command:"
-echo "$cmd"
-echo ""
-
-# Start screen session
-screen -dmS AZZ bash -c "$cmd"
-
 echo "✅ AZTEC node started in screen session 'AZZ'."
+echo "📄 Logs are being saved to ~/aztec-node.log"
 echo "▶️ To view logs: screen -r AZZ"
 echo "🧹 To detach from screen: Press Ctrl+A then D"
+echo "🔎 Or use: tail -f ~/aztec-node.log"
