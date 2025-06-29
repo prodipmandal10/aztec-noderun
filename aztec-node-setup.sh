@@ -1,44 +1,36 @@
 #!/bin/bash
 
-# Check if node ID file provided as argument
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 node_ids.txt"
-    exit 1
-fi
+# Step 1: Auto install necessary packages
+echo "🔧 Updating system and installing dependencies..."
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y screen curl build-essential pkg-config libssl-dev git-all protobuf-compiler
 
-NODE_ID_FILE=$1
+# Step 2: Install Rust silently
+echo "🔧 Installing Rust..."
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
 
-if [ ! -f "$NODE_ID_FILE" ]; then
-    echo "File not found: $NODE_ID_FILE"
-    exit 1
-fi
+# Step 3: Add Rust target
+rustup target add riscv32i-unknown-none-elf
 
-# Install tmux if not installed
-if ! command -v tmux &> /dev/null; then
-    echo "Installing tmux..."
-    sudo apt update && sudo apt install -y tmux
-fi
+# Step 4: Loop for creating tmux sessions with node ID
+while true; do
+    echo ""
+    read -p "📛 Enter tmux session name: " SESSION
+    read -p "🔑 Enter your NODE ID: " NODE_ID
 
-# Loop through each node ID and create tmux session
-count=1
-while IFS= read -r NODE_ID; do
-    SESSION="nex${count}"
-
-    # Check if session already exists, kill if yes (optional)
-    if tmux has-session -t "$SESSION" 2>/dev/null; then
-        echo "Session $SESSION exists. Killing it..."
-        tmux kill-session -t "$SESSION"
-    fi
-
-    echo "Starting tmux session '$SESSION' with NODE ID: $NODE_ID"
-
-    # Create new detached tmux session and run commands
+    # Create tmux session and run commands
     tmux new-session -d -s "$SESSION"
     tmux send-keys -t "$SESSION" "source ~/.bashrc" C-m
     tmux send-keys -t "$SESSION" "nexus-network start --node-id $NODE_ID" C-m
 
-    ((count++))
-done < "$NODE_ID_FILE"
+    echo "✅ Session '$SESSION' started with NODE ID '$NODE_ID'"
 
-echo "✅ All nodes started in tmux sessions nex1 to nex$((count-1))"
-echo "You can attach to any session using: tmux attach -t <session_name>"
+    # Ask if user wants to create another session
+    read -p "➕ Do you want to create another node session? (Y/N): " AGAIN
+    if [[ "$AGAIN" != "Y" && "$AGAIN" != "y" ]]; then
+        break
+    fi
+done
+
+echo "🏁 All done. Use 'tmux attach -t SESSION_NAME' to view any session."
