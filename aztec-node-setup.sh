@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# 🌟 Fancy Header: GENSYN BY PRODIP 🌟
-clear
-echo -e "\e[5m\e[33m=====================================\e[0m"
-echo -e "\e[5m\e[95m🌟        GENSYN BY PRODIP        🌟\e[0m"
-echo -e "\e[5m\e[33m=====================================\e[0m"
-sleep 2
-
 while true; do
   clear
   echo -e "\033[1;36m🌀 Gensyn Node Automation Menu:\033[0m"
@@ -16,8 +9,7 @@ while true; do
   echo "4️⃣  Run: mv swarm.pem rl-swarm/"
   echo "5️⃣  Check if GEN session is running"
   echo "6️⃣  Exit"
-  echo "7️⃣  (First Time Only) Cloudflare OTP Login Setup"
-  echo -n "👉 Enter your choice [1-7]: "
+  echo -n "👉 Enter your choice [1-6]: "
   read choice
 
   case $choice in
@@ -94,19 +86,8 @@ while true; do
       exit 0
       ;;
 
-    7)
-      echo "🌐 Cloudflare Tunnel First-Time Login (OTP)"
-      echo "👉 This will open a login link. Enter your email and OTP in browser."
-      echo "⏳ Please wait..."
-      cloudflared tunnel login
-      echo ""
-      echo "✅ Login complete! cert.pem is saved in ~/.cloudflared/"
-      echo "🔁 You can now run Option 3 (LOC) any time without OTP!"
-      read -p "Press Enter to continue..."
-      ;;
-
     *)
-      echo "❌ Invalid input. Choose 1-7 only."
+      echo "❌ Invalid input. Choose 1-6 only."
       sleep 2
       ;;
   esac
