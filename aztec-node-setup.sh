@@ -1,36 +1,65 @@
 #!/bin/bash
 
-# Step 1: Auto install necessary packages
-echo "🔧 Updating system and installing dependencies..."
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y screen curl build-essential pkg-config libssl-dev git-all protobuf-compiler
+# ============================
+# 🌟 GENSYN BY PRODIP 🌟
+# ============================
 
-# Step 2: Install Rust silently
-echo "🔧 Installing Rust..."
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-source "$HOME/.cargo/env"
+set -e
 
-# Step 3: Add Rust target
-rustup target add riscv32i-unknown-none-elf
+# 🎨 BLINKING TITLE (Yellow + Pink)
+echo -e "\e[5m\e[33m=============================\e[0m"
+echo -e "\e[5m\e[95m🌟  GENSYN BY PRODIP  🌟\e[0m"
+echo -e "\e[5m\e[33m=============================\e[0m"
+sleep 2
 
-# Step 4: Loop for creating tmux sessions with node ID
-while true; do
-    echo ""
-    read -p "📛 Enter tmux session name: " SESSION
-    read -p "🔑 Enter your NODE ID: " NODE_ID
+echo "🔧 System update & dependency install suru hocche..."
+sudo apt update
+sudo apt install -y tmux sudo
+sudo apt install -y python3 python3-venv python3-pip curl wget screen git lsof ufw
 
-    # Create tmux session and run commands
-    tmux new-session -d -s "$SESSION"
-    tmux send-keys -t "$SESSION" "source ~/.bashrc" C-m
-    tmux send-keys -t "$SESSION" "nexus-network start --node-id $NODE_ID" C-m
+echo "📦 Yarn setup..."
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt update && sudo apt install -y yarn
 
-    echo "✅ Session '$SESSION' started with NODE ID '$NODE_ID'"
+echo "🚀 ABHIEBA node.sh script run hocche..."
+curl -sSL https://raw.githubusercontent.com/ABHIEBA/Gensyn/main/node.sh | bash
 
-    # Ask if user wants to create another session
-    read -p "➕ Do you want to create another node session? (Y/N): " AGAIN
-    if [[ "$AGAIN" != "Y" && "$AGAIN" != "y" ]]; then
-        break
-    fi
-done
+echo "📁 tmux session 'GEN' cholche..."
+tmux new-session -d -s GEN '
+cd $HOME
+rm -rf gensyn-testnet
+git clone https://github.com/zunxbt/gensyn-testnet.git
+chmod +x gensyn-testnet/gensyn.sh
+./gensyn-testnet/gensyn.sh
+sleep 5
+tmux send-keys -t GEN C-c
+rm -rf gensyn-testnet
+git clone https://github.com/zunxbt/gensyn-testnet.git
+chmod +x gensyn-testnet/gensyn.sh
+yes 1 | ./gensyn-testnet/gensyn.sh
+sleep 10
+tmux send-keys -t GEN C-b d
+'
 
-echo "🏁 All done. Use 'tmux attach -t SESSION_NAME' to view any session."
+echo "🛡️ UFW firewall setup..."
+sudo ufw allow 22
+sudo ufw allow 3000/tcp
+sudo ufw --force enable
+
+echo "🌐 Cloudflared install hocche..."
+wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i cloudflared-linux-amd64.deb
+
+echo "🌍 tmux session 'TUNNEL' e cloudflared run hocche..."
+tmux new-session -d -s TUNNEL 'cloudflared tunnel --url http://localhost:3000'
+
+# 🔔 Final Message
+echo ""
+echo -e "\e[5m\e[33m=======================================\e[0m"
+echo -e "\e[5m\e[95m🌟 GENSYN BY PRODIP: SETUP COMPLETE 🌟\e[0m"
+echo -e "\e[5m\e[33m=======================================\e[0m"
+echo ""
+echo "🔗 Login link dekhte chaile: tmux attach -t TUNNEL"
+echo "🧠 Node prompt dekhte chaile: tmux attach -t GEN"
+echo "⚠️ swarm.pem move korte hobe nijeke: mv swarm.pem rl-swarm/"
