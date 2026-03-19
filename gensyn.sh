@@ -1,94 +1,76 @@
 #!/bin/bash
 
+# Color Codes for Styling
+CYAN='\033[1;36m'
+GREEN='\033[1;32m'
+RED='\033[1;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
 while true; do
   clear
-  echo -e "\033[1;36m🌀 GG ARMY GENSYN Node Automation Menu:\033[0m"
-  echo "1️⃣  Install all dependencies"
-  echo "2️⃣  Start GEN tmux session (Gensyn Node)"
-  echo "3️⃣  Start LOC tmux session (Firewall + Tunnel)"
-  echo "4️⃣  Run: mv swarm.pem rl-swarm/"
-  echo "5️⃣  Check if GEN session is running"
-  echo "6️⃣  Exit"
-  echo -n "👉 Enter your choice [1-6]: "
+  echo -e "${CYAN}=====================================================${NC}"
+  echo -e "${CYAN}   🛡️  SWIFTENTRY HUB - AUTOMATION MENU             ${NC}"
+  echo -e "${CYAN}=====================================================${NC}"
+  echo -e "1️⃣  হোম পেজ আপডেট করুন (Welcome Gateway)"
+  echo -e "2️⃣  অ্যাডমিন লগইন আপডেট করুন (Admin Login)"
+  echo -e "3️⃣  স্টাফ লগইন আপডেট করুন (Staff Login)"
+  echo -e "4️⃣  মেইন অ্যাডমিন প্যানেল আপডেট করুন (Admin Panel)"
+  echo -e "5️⃣  স্টাফ ড্যাশবোর্ড আপডেট করুন (Staff Dashboard)"
+  echo -e "6️⃣  লাইভ রাডার আপডেট করুন (Attendance Radar)"
+  echo -e "7️⃣  স্টাফ ম্যানেজমেন্ট পেজ আপডেট করুন (Manage Staff)"
+  echo -e "8️⃣  লগআউট ফাইল আপডেট করুন (Logout System)"
+  echo -e "9️⃣  ডেটাবেস সেটআপ/আপডেট করুন (Database Reset)"
+  echo -e "0️⃣  ❌ এক্সিট (Exit)"
+  echo -e "${CYAN}-----------------------------------------------------${NC}"
+  echo -n "👉 আপনার পছন্দ নির্বাচন করুন [0-9]: "
   read choice
 
+  if [[ "$choice" == "0" ]]; then
+    echo -e "${GREEN}👋 বিদায় বন্ধু! আবার দেখা হবে।${NC}"
+    exit 0
+  fi
+
+  file_path=""
   case $choice in
-    1)
-      echo "🔧 Installing dependencies..."
-      sudo apt update && sudo apt install -y sudo tmux python3 python3-venv python3-pip curl wget screen git lsof ufw
-      curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-      echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-      sudo apt update && sudo apt install -y yarn
-      curl -sSL https://raw.githubusercontent.com/ABHIEBA/Gensyn/main/node.sh | bash
-      echo "✅ Dependencies installed!"
-      read -p "Press Enter to continue..."
-      ;;
-
-    2)
-      tmux has-session -t GEN 2>/dev/null
-      if [ $? == 0 ]; then
-        echo "⚠️ GEN session already exists. Attaching..."
-      else
-        echo "🚀 Creating GEN session and running node..."
-        tmux new-session -d -s GEN "bash -c '
-          cd \$HOME &&
-          rm -rf gensyn-testnet &&
-          git clone https://github.com/zunxbt/gensyn-testnet.git &&
-          chmod +x gensyn-testnet/gensyn.sh &&
-          ./gensyn-testnet/gensyn.sh;
-          exec bash
-        '"
-        echo "✅ GEN session started!"
-      fi
-      sleep 1
-      tmux attach-session -t GEN
-      ;;
-
-    3)
-      tmux has-session -t LOC 2>/dev/null
-      if [ $? == 0 ]; then
-        echo "⚠️ LOC session already exists. Attaching..."
-      else
-        echo "🔐 Starting LOC session..."
-        tmux new-session -d -s LOC "bash -c '
-          sudo ufw allow 22 &&
-          sudo ufw allow 3000/tcp &&
-          echo y | sudo ufw enable &&
-          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb &&
-          sudo dpkg -i cloudflared-linux-amd64.deb &&
-          cloudflared tunnel --url http://localhost:3000;
-          exec bash
-        '"
-        echo "✅ LOC session started!"
-      fi
-      sleep 1
-      tmux attach-session -t LOC
-      ;;
-
-    4)
-      echo "📂 Running: mv swarm.pem rl-swarm/"
-      mv swarm.pem rl-swarm/ 2>/dev/null && echo "✅ swarm.pem moved!" || echo "❌ swarm.pem not found!"
-      read -p "Press Enter to continue..."
-      ;;
-
-    5)
-      tmux has-session -t GEN 2>/dev/null
-      if [ $? == 0 ]; then
-        echo "✅ GEN session is running."
-      else
-        echo "❌ GEN session is NOT running."
-      fi
-      read -p "Press Enter to continue..."
-      ;;
-
-    6)
-      echo "👋 Exiting... goodbye!"
-      exit 0
-      ;;
-
-    *)
-      echo "❌ Invalid input. Choose 1-6 only."
-      sleep 2
-      ;;
+    1) file_path="/var/www/html/index.php" ;;
+    2) file_path="/var/www/html/login_admin.php" ;;
+    3) file_path="/var/www/html/login_staff.php" ;;
+    4) file_path="/var/www/html/admin.php" ;;
+    5) file_path="/var/www/html/staff_dashboard.php" ;;
+    6) file_path="/var/www/html/check_attendance.php" ;;
+    7) file_path="/var/www/html/staff_manage.php" ;;
+    8) file_path="/var/www/html/logout.php" ;;
+    9) file_path="database" ;;
+    *) echo -e "${RED}❌ ভুল ইনপুট! দয়া করে ০-৯ এর মধ্যে বেছে নিন।${NC}"; sleep 2; continue ;;
   esac
+
+  if [[ "$file_path" == "database" ]]; then
+    echo -e "${YELLOW}⚠️ আপনি কি পুরনো ডেটাবেস মুছে নতুন ডেটাবেস কোড দিতে চান? (y/n):${NC}"
+    read confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+      echo -e "${GREEN}📋 আপনার ডেটাবেস কোডটি এখানে পেস্ট করুন:${NC}"
+      echo -e "${CYAN}(সব কোড পেস্ট করা শেষ হলে কিবোর্ডে Ctrl+D চাপুন)${NC}"
+      cat > temp_db.sql
+      sudo mysql < temp_db.sql
+      rm temp_db.sql
+      echo -e "${GREEN}✅ ডেটাবেস সফলভাবে আপডেট হয়েছে!${NC}"
+    else
+      echo -e "${RED}❌ আপডেট বাতিল করা হয়েছে।${NC}"
+    fi
+  else
+    echo -e "${YELLOW}⚠️ আপনি কি $file_path এর পুরনো কোড মুছে নতুন কোড দিতে চান? (y/n):${NC}"
+    read confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+      echo -e "${GREEN}📋 আপনার নতুন কোডটি এখানে পেস্ট করুন:${NC}"
+      echo -e "${CYAN}(সব কোড পেস্ট করা শেষ হলে কিবোর্ডে Ctrl+D চাপুন)${NC}"
+      cat > "$file_path"
+      echo -e "${GREEN}✅ ফাইলটি সফলভাবে আপডেট এবং সেভ করা হয়েছে!${NC}"
+    else
+      echo -e "${RED}❌ আপডেট বাতিল করা হয়েছে।${NC}"
+    fi
+  fi
+  
+  echo -e "${CYAN}-----------------------------------------------------${NC}"
+  read -p "মেইন মেনুতে ফিরে যেতে Enter চাপুন..."
 done
